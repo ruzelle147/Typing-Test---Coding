@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practical - Typing Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: -10px;
+        }
+
+        #textToType {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            word-wrap: break-word;
+            min-height: 60px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            text-align: left;
+            font-family: "Courier New", Courier, monospace;
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            overflow-y: auto;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: none;
+            box-sizing: border-box;
+            font-family: "Courier New", Courier, monospace;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .highlight-correct {
+            color: green;
+        }
+
+        .highlight-incorrect {
+            color: red;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        @media screen and (max-width: 768px) {
+            h1 {
+                font-size: 1.2rem;
+            }
+            h3 {
+                font-size: 1rem;
+            }
+
+            textarea {
+                height: 80px;
+            }
+
+            #textToType {
+                font-size: 1rem;
+                padding: 8px;
+            }
+
+            button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            h1 {
+                font-size: 1rem;
+            }
+            h3 {
+                font-size: 1rem;
+            }
+
+            textarea {
+                height: 60px;
+            }
+
+            #textToType {
+                font-size: 0.9rem;
+                padding: 6px;
+            }
+
+            button {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Practical exam memorized your code.</h1>
+        <h3>Typing Test - Code</h3>
+        <input type="file" id="fileInput" accept=".txt, .py" />
+        <pre id="textToType"></pre>
+        <textarea id="userInput" placeholder="Start typing..." autofocus></textarea>
+        <button id="startBtn">Start Test</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const textToType = document.getElementById('textToType');
+        const userInput = document.getElementById('userInput');
+        const startBtn = document.getElementById('startBtn');
+        const resultDiv = document.getElementById('result');
+    
+        let originalText = '';
+        let typedText = '';
+    
+        // Handle file upload and display text
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && (file.type === "text/plain" || file.type === "text/x-python")) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    originalText = event.target.result.replace(/\r\n/g, '\n');
+                    textToType.textContent = originalText;
+                    textToType.scrollTop = 0;
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Please upload a .txt or .py file.');
+            }
+        });
+    
+        // Start the test
+        startBtn.addEventListener('click', () => {
+            if (!originalText) {
+                alert('Please upload a text file first!');
+                return;
+            }
+            userInput.disabled = false;
+            userInput.value = '';
+            userInput.focus();
+            resultDiv.textContent = '';
+        });
+    
+        // Handle "Tab" key for spacing
+        userInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                const cursorPosition = userInput.selectionStart;
+                const currentText = userInput.value;
+                const newText = currentText.slice(0, cursorPosition) + '    ' + currentText.slice(cursorPosition);
+                userInput.value = newText;
+                userInput.selectionStart = userInput.selectionEnd = cursorPosition + 4;
+            }
+        });
+    
+        // Real-time typing validation with error highlighting
+        userInput.addEventListener('input', () => {
+            typedText = userInput.value.replace(/\r\n/g, '\n');
+    
+            let highlightedText = '';
+            let hasError = false;
+    
+            for (let i = 0; i < originalText.length; i++) {
+                const char = originalText[i] || '';
+                const typedChar = typedText[i] || '';
+    
+                if (typedChar === char) {
+                    highlightedText += `<span class="highlight-correct">${char === ' ' ? '&nbsp;' : char}</span>`;
+                } else if (typedChar) {
+                    highlightedText += `<span class="highlight-incorrect">${char === ' ' ? '&nbsp;' : char}</span>`;
+                    hasError = true;
+                } else {
+                    highlightedText += `<span>${char === ' ' ? '&nbsp;' : char}</span>`;
+                }
+            }
+    
+            // Update the text display with highlighted content
+            textToType.innerHTML = highlightedText;
+    
+            // Scroll to the last correct/incorrect character automatically
+            const lastHighlight = document.querySelector('.highlight-incorrect:last-child, .highlight-correct:last-child');
+            if (lastHighlight) {
+                const highlightPosition = lastHighlight.offsetTop + lastHighlight.offsetHeight;
+                if (highlightPosition > textToType.scrollTop + textToType.clientHeight) {
+                    textToType.scrollTop = highlightPosition - textToType.clientHeight;
+                }
+            }
+    
+            // Update result message based on input correctness
+            if (typedText === originalText) {
+                resultDiv.textContent = 'Congratulations! You typed correctly!';
+                resultDiv.style.color = 'green';
+            } else if (hasError) {
+                resultDiv.textContent = 'Mistake detected! Please correct the highlighted errors.';
+                resultDiv.style.color = 'red';
+            } else {
+                resultDiv.textContent = 'Keep going! You are on the right track.';
+                resultDiv.style.color = 'orange';
+            }
+        });
+    </script>
+    
+</body>
+</html>
